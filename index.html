@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi PPNPN - Kantor GTK Prov. Maluku Utara</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl card-shadow p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        🎓
+                    </div>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800 leading-tight">Absensi PPNPN</h1>
+                <h2 class="text-lg font-semibold text-blue-700 mt-1">Kantor Guru dan Tenaga Kependidikan</h2>
+                <p class="text-base text-gray-600 font-medium">Provinsi Maluku Utara</p>
+                <p class="text-sm text-gray-500 mt-2">Sistem Absensi Online Berbasis Lokasi</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">NIK</label>
+                    <input type="text" id="nikInput" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan NIK Anda" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="passwordInput" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan Password" required>
+                </div>
+                <button type="submit" id="loginBtn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transform transition hover:scale-105 disabled:opacity-50">
+                    <span id="loginBtnText">Masuk</span>
+                    <div id="loginSpinner" class="hidden loading-spinner inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
+                </button>
+            </form>
+            
+            <div id="loginError" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm text-red-600"></p>
+            </div>
+            
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm text-blue-800 font-semibold mb-2">🔐 Informasi Login:</p>
+                <div class="text-xs text-blue-600 space-y-1">
+                    <p>Gunakan NIK dan password yang telah didaftarkan</p>
+                    <p>Pastikan lokasi GPS aktif untuk absensi</p>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-xs text-gray-500">© 2025 Kantor GTK Provinsi Maluku Utara</p>
+                <p class="text-xs text-gray-400">Kemendikbudristek</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden fade-in">
+        <!-- Header -->
+        <header class="gradient-bg text-white p-4 shadow-lg sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 flex items-center justify-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            🎓
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold leading-tight">Absensi PPNPN</h1>
+                        <p class="text-xs opacity-90 leading-tight">Kantor Guru & Tenaga Kependidikan Malut</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p class="text-sm opacity-90" id="currentDate"></p>
+                        <p class="text-lg font-semibold" id="currentTime"></p>
+                    </div>
+                    <button id="adminPanelBtn" class="hidden bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1">
+                        <span>⚙️</span>
+                        <span class="hidden md:inline">Admin</span>
+                    </button>
+                    <button id="logoutBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1">
+                        <span>🚪</span>
+                        <span class="hidden md:inline">Keluar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-6xl mx-auto p-4 space-y-6">
+            <!-- Status Card -->
+            <div class="bg-white rounded-xl card-shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">📊 Status Absensi Hari Ini</h2>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-500 rounded-full pulse-animation"></div>
+                        <span class="text-sm text-gray-600" id="locationStatus">Mendeteksi lokasi...</span>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-l-4 border-blue-500">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-3xl">🌅</span>
+                            <div>
+                                <p class="text-sm text-gray-600 font-medium">Absen Masuk</p>
+                                <p class="text-xl font-bold text-blue-600" id="checkInTime">Belum absen</p>
+                                <p class="text-xs text-gray-500" id="checkInLocation"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-l-4 border-orange-500">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-3xl">🌇</span>
+                            <div>
+                                <p class="text-sm text-gray-600 font-medium">Absen Pulang</p>
+                                <p class="text-xl font-bold text-orange-600" id="checkOutTime">Belum absen</p>
+                                <p class="text-xs text-gray-500" id="checkOutLocation"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-600">Total Jam Kerja Hari Ini:</span>
+                        <span class="font-bold text-gray-800" id="workHours">0 jam</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Card -->
+            <div class="bg-white rounded-xl card-shadow p-6">
+                <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6 mb-6">
+                    <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                        <span id="userInitials">AG</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="text-2xl font-bold text-gray-800" id="userName">Loading...</h3>
+                        <p class="text-gray-600 text-lg" id="userPosition">Loading...</p>
+                        <div class="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
+                            <span id="userNik">Loading...</span>
+                            <span id="userPhone"></span>
+                            <span id="userUnit"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                        <p class="text-3xl font-bold text-green-600" id="presentDays">-</p>
+                        <p class="text-sm text-gray-600">Hari Hadir</p>
+                    </div>
+                    <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <p class="text-3xl font-bold text-red-600" id="absentDays">-</p>
+                        <p class="text-sm text-gray-600">Tidak Hadir</p>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                        <p class="text-3xl font-bold text-yellow-600" id="lateDays">-</p>
+                        <p class="text-sm text-gray-600">Terlambat</p>
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <p class="text-3xl font-bold text-blue-600" id="totalHours">-</p>
+                        <p class="text-sm text-gray-600">Total Jam</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Info & Map -->
+            <div class="bg-white rounded-xl card-shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">📍 Informasi Lokasi</h3>
+                    <button id="refreshLocationBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2">
+                        <span class="loading-spinner hidden w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+                        <span>🔄</span>
+                        <span>Refresh Lokasi</span>
+                    </button>
+                </div>
+                
+                <!-- Map Container -->
+                <div id="mapContainer" class="map-container mb-4 bg-gray-100 flex items-center justify-center">
+                    <p class="text-gray-500">Memuat peta...</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-gray-600">Lokasi Saat Ini:</span>
+                        <span class="font-semibold text-gray-800 text-right" id="currentLocation">Mendeteksi...</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-gray-600">Jarak dari Kantor:</span>
+                        <span class="font-semibold" id="distanceFromOffice">Menghitung...</span>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-600">Kantor Terdekat:</span>
+                            <span class="font-semibold text-green-700" id="nearestOffice">Loading...</span>
+                        </div>
+                        <p class="text-sm text-gray-500" id="officeAddress">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Buttons -->
+            <div class="grid md:grid-cols-2 gap-4">
+                <button id="checkInBtn" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-6 px-6 rounded-xl shadow-lg transform transition hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                    <div class="flex items-center justify-center space-x-3">
+                        <span class="text-3xl">✅</span>
+                        <div class="text-left">
+                            <div class="text-lg">Absen Masuk</div>
+                            <div class="text-sm opacity-90">Jam Kerja: 08:00 - 16:00</div>
+                        </div>
+                    </div>
+                </button>
+                
+                <button id="checkOutBtn" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-6 px-6 rounded-xl shadow-lg transform transition hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" disabled>
+                    <div class="flex items-center justify-center space-x-3">
+                        <span class="text-3xl">🏃‍♂️</span>
+                        <div class="text-left">
+                            <div class="text-lg">Absen Pulang</div>
+                            <div class="text-sm opacity-90">Minimal 8 jam kerja</div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-xl card-shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">📋 Riwayat Absensi 7 Hari Terakhir</h3>
+                    <button id="refreshHistoryBtn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        Refresh
+                    </button>
+                </div>
+                <div class="space-y-3" id="recentActivity">
+                    <div class="text-center py-8">
+                        <div class="loading-spinner w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+                        <p class="text-gray-500 mt-3">Memuat riwayat absensi...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                <div class="flex items-center justify-center space-x-3 mb-3">
+                    <div class="w-8 h-8 flex items-center justify-center">
+                        <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            🎓
+                        </div>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-700">Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi</span>
+                </div>
+                <p class="text-xs text-gray-500">© 2025 KGTK Prov. Malut Kemendikbudristek</p>
+                <p class="text-xs text-gray-400 mt-1">Sistem Absensi Online Berbasis Lokasi</p>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="hidden fade-in">
+            <div class="max-w-6xl mx-auto p-4 space-y-6">
+                <!-- Admin Header -->
+                <div class="bg-white rounded-xl card-shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">⚙️ Panel Admin</h2>
+                            <p class="text-gray-600">Kelola Data Pegawai dan Lokasi Kantor</p>
+                        </div>
+                        <button id="backToMainBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition flex items-center space-x-2">
+                            <span>←</span>
+                            <span>Kembali ke Absensi</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Overview -->
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-xl card-shadow p-4 text-center">
+                        <p class="text-3xl font-bold text-blue-600" id="adminTotalEmployees">-</p>
+                        <p class="text-sm text-gray-600">Total Pegawai</p>
+                    </div>
+                    <div class="bg-white rounded-xl card-shadow p-4 text-center">
+                        <p class="text-3xl font-bold text-green-600" id="adminPresentToday">-</p>
+                        <p class="text-sm text-gray-600">Hadir Hari Ini</p>
+                    </div>
+                    <div class="bg-white rounded-xl card-shadow p-4 text-center">
+                        <p class="text-3xl font-bold text-red-600" id="adminAbsentToday">-</p>
+                        <p class="text-sm text-gray-600">Tidak Hadir</p>
+                    </div>
+                    <div class="bg-white rounded-xl card-shadow p-4 text-center">
+                        <p class="text-3xl font-bold text-yellow-600" id="adminLateToday">-</p>
+                        <p class="text-sm text-gray-600">Terlambat</p>
+                    </div>
+                </div>
+
+                <!-- Office Location Management -->
+                <div class="bg-white rounded-xl card-shadow p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">🏢 Kelola Lokasi Kantor</h3>
+                        <button id="addOfficeBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition flex items-center space-x-2">
+                            <span>📍</span>
+                            <span>Tambah Lokasi</span>
+                        </button>
+                    </div>
+
+                    <!-- Office Locations Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Nama Kantor</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Alamat</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Koordinat</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Radius</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-700">Status</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-700">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="officeTableBody">
+                                <tr>
+                                    <td colspan="6" class="border border-gray-200 px-4 py-8 text-center">
+                                        <div class="loading-spinner w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+                                        <p class="text-gray-500">Memuat data lokasi kantor...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Employee Management -->
+                <div class="bg-white rounded-xl card-shadow p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">👥 Data Pegawai</h3>
+                        <button id="addEmployeeBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition flex items-center space-x-2">
+                            <span>➕</span>
+                            <span>Tambah Pegawai</span>
+                        </button>
+                    </div>
+
+                    <!-- Search and Filter -->
+                    <div class="mb-4 flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <input type="text" id="searchEmployee" placeholder="Cari nama atau NIK pegawai..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <select id="filterPosition" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Semua Posisi</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Guru">Guru</option>
+                            <option value="Staff">Staff</option>
+                            <option value="PPNPN">PPNPN</option>
+                        </select>
+                    </div>
+
+                    <!-- Employee Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">NIK</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Nama</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Posisi</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Unit Kerja</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700">Telepon</th>
+                                    <th class="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-700">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeTableBody">
+                                <tr>
+                                    <td colspan="6" class="border border-gray-200 px-4 py-8 text-center">
+                                        <div class="loading-spinner w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+                                        <p class="text-gray-500">Memuat data pegawai...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl p-8 max-w-sm w-full text-center">
+                <div class="text-6xl mb-4" id="modalIcon">✅</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2" id="modalTitle">Absensi Berhasil!</h3>
+                <p class="text-gray-600 mb-6" id="modalMessage">Absensi berhasil dicatat</p>
+                <button id="closeModal" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg w-full">
+                    Tutup
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 text-center">
+                <div class="loading-spinner w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p class="text-gray-700">Memproses...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

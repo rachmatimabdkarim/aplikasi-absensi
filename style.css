@@ -1,0 +1,113 @@
+/* Custom Styles untuk Aplikasi Absensi */
+.gradient-bg {
+    background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+}
+
+.card-shadow {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.status-green { 
+    color: #059669; 
+    background-color: #d1fae5; 
+}
+
+.status-red { 
+    color: #dc2626; 
+    background-color: #fee2e2; 
+}
+
+.status-yellow { 
+    color: #d97706; 
+    background-color: #fef3c7; 
+}
+
+.status-blue { 
+    color: #2563eb; 
+    background-color: #dbeafe; 
+}
+
+.map-container {
+    height: 300px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.border-green { border-color: #10b981; }
+.border-red { border-color: #ef4444; }
+.border-yellow { border-color: #f59e0b; }
+.border-blue { border-color: #3b82f6; }
+
+.bg-green-50 { background-color: #f0fdf4; }
+.bg-red-50 { background-color: #fef2f2; }
+.bg-yellow-50 { background-color: #fffbeb; }
+.bg-blue-50 { background-color: #eff6ff; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .map-container {
+        height: 200px;
+    }
+    
+    .hidden-mobile {
+        display: none;
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .card-shadow {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
