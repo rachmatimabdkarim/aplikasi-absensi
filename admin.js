@@ -1,11 +1,11 @@
-/** admin.js — Panel Admin terpisah (versi sinkron skema) */
+/** admin.js — Panel Admin terpisah (sinkron style & skema, plus CRUD Pegawai) */
 
+/* =========================
+   Inisialisasi Supabase
+========================= */
 (function initSupabaseClient(){
-  // 1) Ambil kredensial dari global (set di admin_styled.html) atau fallback
-  const SUPABASE_URL  = window.__SUPABASE_URL  || window.SUPABASE_URL  || "https://rwascvkexdjirtvggaiu.supabase.co";
-  const SUPABASE_ANON = window.__SUPABASE_ANON || window.SUPABASE_ANON || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXNjdmtleGRqaXJ0dmdnYWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MjQzMjksImV4cCI6MjA3NDUwMDMyOX0.NkSE29IW1CO9o7z-mN0KxOwY9WHSedsDhH-TkAWtTjo";
-
-  // 2) Pastikan lib @supabase/supabase-js ada
+  const SUPABASE_URL  = window.__SUPABASE_URL  || window.SUPABASE_URL  || "";
+  const SUPABASE_ANON = window.__SUPABASE_ANON || window.SUPABASE_ANON || "";
   const SB = (window.supabase && window.supabase.createClient)
            ? window.supabase
            : (window.Supabase && window.Supabase);
@@ -15,11 +15,9 @@
     window.__ADMIN_BOOT_ERROR__ = "Supabase JS belum termuat.";
     return;
   }
-
-  // 3) Buat client jika belum ada
   if (!window.supabaseClient) {
     if (!SUPABASE_URL || !SUPABASE_ANON) {
-      console.warn("SUPABASE_URL/ANON belum diisi di admin HTML.");
+      console.warn("SUPABASE_URL/ANON belum diisi di admin_styled.html.");
       window.__ADMIN_BOOT_ERROR__ = "Konfigurasi Supabase belum diisi pada admin_styled.html.";
     } else {
       window.supabaseClient = SB.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -27,6 +25,9 @@
   }
 })();
 
+/* =========================
+   Utilities
+========================= */
 function qs(id){ return document.getElementById(id); }
 function setNumber(id, v){ const el = qs(id); if (el) el.textContent = (v ?? "—"); }
 function showGuard(msg){
@@ -34,7 +35,11 @@ function showGuard(msg){
   if (box){ box.classList.remove("hidden"); box.textContent = msg; }
 }
 
-/** Cek sesi & role Admin berdasar tabel employees.position */
+let ADMIN_ORG_ID = null;
+
+/* =========================
+   Auth & Guard Admin
+========================= */
 async function ensureAdmin(){
   try {
     if (!window.supabaseClient) {
@@ -48,26 +53,22 @@ async function ensureAdmin(){
       return false;
     }
 
-    // Cari profil pada tabel yang umum dipakai aplikasi
+    // Cari profil di tabel umum aplikasi (prioritas employees)
     let profile = null;
     const candidateTables = ["employees", "profiles", "user_profiles"];
     for (const t of candidateTables) {
       const { data, error: e2 } = await window.supabaseClient
         .from(t)
-        .select("id, email, name, position")
+        .select("id, email, name, position, organization_id")
         .eq("user_id", session.user.id)
         .maybeSingle();
       if (!e2 && data) { profile = data; break; }
     }
 
-    if (!profile) {
-      showGuard("Profil pengguna tidak ditemukan. Hubungi admin sistem.");
-      return false;
-    }
-    if ((profile.position || "").toLowerCase() !== "admin") {
-      showGuard("Akses ditolak: Anda bukan Admin.");
-      return false;
-    }
+    if (!profile) { showGuard("Profil pengguna tidak ditemukan. Hubungi admin sistem."); return false; }
+    if ((profile.position || "").toLowerCase() !== "admin") { showGuard("Akses ditolak: Anda bukan Admin."); return false; }
+
+    ADMIN_ORG_ID = profile.organization_id || null;
     return true;
   } catch (err) {
     console.error(err);
@@ -76,10 +77,12 @@ async function ensureAdmin(){
   }
 }
 
-/** Statistik: total pegawai, total lokasi (offices), absensi hari ini */
+/* =========================
+   Statistik
+========================= */
 async function loadStats(){
   try {
-    // Total Pegawai (employees)
+    // Total Pegawai
     let totalEmployees = 0;
     {
       const { count, error } = await window.supabaseClient
@@ -89,7 +92,7 @@ async function loadStats(){
     }
     setNumber("statTotalEmployees", totalEmployees);
 
-    // Lokasi Kantor (offices) — ganti dari office_locations -> offices
+    // Lokasi Kantor (offices)
     let locations = 0;
     {
       const { count, error } = await window.supabaseClient
@@ -99,9 +102,7 @@ async function loadStats(){
     }
     setNumber("statLocations", locations);
 
-    // Absensi hari ini (attendance)
-    // Catatan: dengan RLS default, ini hanya menghitung milik user sendiri.
-    // Untuk rekap semua pegawai, tambahkan policy SELECT untuk Admin di DB.
+    // Absensi hari ini — catatan: butuh RLS khusus agar Admin bisa lihat semua organisasi
     let todayCount = 0;
     {
       const d = new Date();
@@ -126,21 +127,21 @@ async function loadStats(){
   }
 }
 
-/** Tabel pegawai */
+/* =========================
+   Daftar Pegawai + CRUD
+========================= */
 async function loadEmployees(q=""){
   const tbody = qs("employeesTbody");
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="4" class="text-gray-500">Memuat…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-gray-500">Memuat…</td></tr>`;
   try {
-    // pakai kolom nik (bukan nip)
     let query = window.supabaseClient
       .from("employees")
-      .select("name,nik,position,email")
+      .select("id,name,nik,position,email")
       .order("name", { ascending: true })
       .limit(500);
 
     if (q) {
-      // cari di name / nik / email
       query = query.or(`name.ilike.%${q}%,nik.ilike.%${q}%,email.ilike.%${q}%`);
     }
 
@@ -148,31 +149,122 @@ async function loadEmployees(q=""){
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" class="text-gray-500">Tidak ada data</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-gray-500">Tidak ada data</td></tr>`;
       return;
     }
 
     tbody.innerHTML = data.map(r => `
-      <tr>
+      <tr data-id="${r.id}">
         <td class="px-4 py-3">${r.name ?? "-"}</td>
         <td class="px-4 py-3">${r.nik ?? "-"}</td>
         <td class="px-4 py-3">${r.position ?? "-"}</td>
         <td class="px-4 py-3">${r.email ?? "-"}</td>
+        <td class="px-4 py-3">
+          <button class="edit-emp px-2 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">Edit</button>
+          <button class="del-emp px-2 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50">Hapus</button>
+        </td>
       </tr>
     `).join("");
   } catch (err) {
     console.error("loadEmployees error:", err);
-    tbody.innerHTML = `<tr><td colspan="4" class="text-red-600">Gagal memuat pegawai</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-red-600">Gagal memuat pegawai</td></tr>`;
   }
 }
 
-/** Daftar lokasi (offices) */
+function openEmployeeModal(mode='create', rec=null){
+  const m = qs('employeeModal');
+  const title = qs('employeeModalTitle');
+  const id = qs('empId');
+  const name = qs('empName');
+  const nik = qs('empNik');
+  const email = qs('empEmail');
+  const pos = qs('empPosition');
+  const errBox = qs('employeeFormError');
+
+  if (errBox) errBox.classList.add('hidden');
+  if (mode === 'create') {
+    title.textContent = 'Tambah Pegawai';
+    id.value = '';
+    name.value = ''; nik.value = ''; email.value = '';
+    pos.value = 'Staff';
+  } else {
+    title.textContent = 'Edit Pegawai';
+    id.value = rec.id;
+    name.value = rec.name || '';
+    nik.value = rec.nik || '';
+    email.value = rec.email || '';
+    pos.value = rec.position || 'Staff';
+  }
+  m.classList.remove('hidden');
+}
+function closeEmployeeModal(){ qs('employeeModal')?.classList.add('hidden'); }
+
+async function saveEmployee(e){
+  e.preventDefault();
+  const id = qs('empId').value.trim();
+  const name = qs('empName').value.trim();
+  const nik = qs('empNik').value.trim();
+  const email = qs('empEmail').value.trim();
+  const position = qs('empPosition').value;
+  const errBox = qs('employeeFormError');
+
+  if (!name || !nik || !email || !position) {
+    errBox.textContent = 'Nama, NIK, Email, dan Posisi wajib diisi.'; 
+    errBox.classList.remove('hidden'); 
+    return;
+  }
+  if (!ADMIN_ORG_ID) {
+    errBox.textContent = 'Organization ID tidak ditemukan. Pastikan profil admin memiliki organization_id.'; 
+    errBox.classList.remove('hidden'); 
+    return;
+  }
+
+  try {
+    if (id) {
+      const { error } = await window.supabaseClient
+        .from('employees')
+        .update({ name, nik, email, position })
+        .eq('id', id);
+      if (error) throw error;
+    } else {
+      const payload = { name, nik, email, position, organization_id: ADMIN_ORG_ID };
+      const { error } = await window.supabaseClient
+        .from('employees')
+        .insert(payload);
+      if (error) throw error;
+    }
+    closeEmployeeModal();
+    await loadEmployees(qs('employeeSearch')?.value?.trim() || '');
+  } catch (err) {
+    console.error('saveEmployee error:', err);
+    errBox.textContent = err?.message || 'Gagal menyimpan data pegawai.';
+    errBox.classList.remove('hidden');
+  }
+}
+
+async function deleteEmployeeById(id){
+  if (!confirm('Yakin ingin menghapus pegawai ini? Tindakan tidak dapat dibatalkan.')) return;
+  try {
+    const { error } = await window.supabaseClient
+      .from('employees')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    await loadEmployees(qs('employeeSearch')?.value?.trim() || '');
+  } catch (err) {
+    console.error('deleteEmployee error:', err);
+    alert('Gagal menghapus pegawai: ' + (err?.message || 'unknown error'));
+  }
+}
+
+/* =========================
+   Daftar Lokasi (offices)
+========================= */
 async function loadLocations(){
   const box = qs("locationsList");
   if (!box) return;
   box.textContent = "Memuat…";
   try {
-    // app utama pakai offices + field name, address, latitude, longitude, radius_meters
     const { data, error } = await window.supabaseClient
       .from("offices")
       .select("id, name, address")
@@ -183,7 +275,6 @@ async function loadLocations(){
       box.textContent = "Belum ada lokasi.";
       return;
     }
-
     box.innerHTML = data.map(l => `
       <div class="py-1.5">
         <div class="font-semibold">${l.name ?? "(Tanpa nama)"}</div>
@@ -196,13 +287,14 @@ async function loadLocations(){
   }
 }
 
+/* =========================
+   Init
+========================= */
 async function initAdminPage(){
-  // Tampilkan pesan kalau client gagal terbuat
   if (!window.supabaseClient) {
     showGuard(window.__ADMIN_BOOT_ERROR__ || "Supabase client belum siap.");
     return;
   }
-
   const ok = await ensureAdmin();
   if (!ok) return;
 
@@ -210,15 +302,13 @@ async function initAdminPage(){
   await loadEmployees();
   await loadLocations();
 
-  // UI handlers
-  const logoutBtn = qs("logoutBtn");
-  if (logoutBtn){
-    logoutBtn.addEventListener("click", async ()=>{
-      try { await window.supabaseClient.auth.signOut(); } catch(e){}
-      window.location.href = "index.html";
-    });
-  }
+  // Logout
+  qs("logoutBtn")?.addEventListener("click", async ()=>{
+    try { await window.supabaseClient.auth.signOut(); } catch(e){}
+    window.location.href = "index.html";
+  });
 
+  // Search debounce
   const search = qs("employeeSearch");
   if (search){
     let timer = null;
@@ -228,14 +318,35 @@ async function initAdminPage(){
     });
   }
 
-  const refreshEmployees = qs("refreshEmployees");
-  if (refreshEmployees){
-    refreshEmployees.addEventListener("click", ()=> loadEmployees(search ? search.value.trim() : ""));
-  }
+  // Refresh list
+  qs("refreshEmployees")?.addEventListener("click", ()=> loadEmployees(search ? search.value.trim() : ""));
+  qs("refreshLocations")?.addEventListener("click", ()=> loadLocations());
 
-  const refreshLocations = qs("refreshLocations");
-  if (refreshLocations){
-    refreshLocations.addEventListener("click", ()=> loadLocations());
+  // Modal & CRUD Events
+  qs("addEmployeeBtn")?.addEventListener("click", ()=> openEmployeeModal('create'));
+  qs("closeEmployeeModal")?.addEventListener("click", closeEmployeeModal);
+  qs("cancelEmployeeModal")?.addEventListener("click", closeEmployeeModal);
+  qs("employeeForm")?.addEventListener("submit", saveEmployee);
+
+  const tbody = qs("employeesTbody");
+  if (tbody) {
+    tbody.addEventListener("click", (ev) => {
+      const tr = ev.target.closest("tr[data-id]");
+      if (!tr) return;
+      const id = tr.getAttribute("data-id");
+      if (ev.target.classList.contains("edit-emp")) {
+        const tds = tr.querySelectorAll("td");
+        openEmployeeModal("edit", {
+          id,
+          name: tds[0].textContent.trim(),
+          nik: tds[1].textContent.trim(),
+          position: tds[2].textContent.trim(),
+          email: tds[3].textContent.trim(),
+        });
+      } else if (ev.target.classList.contains("del-emp")) {
+        deleteEmployeeById(id);
+      }
+    });
   }
 }
 
