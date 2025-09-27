@@ -1,3 +1,17 @@
+// Debug code - hapus setelah berfungsi
+console.log('🔄 Script.js loaded successfully');
+console.log('🔍 Checking for register button...');
+console.log('Register button element:', document.getElementById('showRegisterBtn'));
+
+// Force setup after DOM load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🏠 DOM fully loaded');
+    setTimeout(function() {
+        console.log('🔧 Manually setting up register listeners');
+        setupRegisterListeners();
+    }, 500);
+});
+
 // =============================================
 // KONFIGURASI SUPABASE - GANTI DENGAN DATA ANDA
 // =============================================
