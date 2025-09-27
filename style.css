@@ -70,6 +70,32 @@
 .bg-yellow-50 { background-color: #fffbeb; }
 .bg-blue-50 { background-color: #eff6ff; }
 
+/* Additional styles for register modal */
+.password-strength {
+    transition: all 0.3s ease;
+}
+
+.register-modal {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Password strength indicator */
+.password-strength-bar {
+    transition: all 0.3s ease;
+    width: 0%;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .map-container {
@@ -78,6 +104,13 @@
     
     .hidden-mobile {
         display: none;
+    }
+    
+    /* Responsive design for modal */
+    #registerModal > div {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        max-height: calc(100vh - 2rem);
     }
 }
 
@@ -110,4 +143,108 @@
         box-shadow: none;
         border: 1px solid #ddd;
     }
+}
+
+/* Animation for success messages */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: slideInUp 0.3s ease-out;
+}
+
+/* Loading states */
+.skeleton-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Focus states for accessibility */
+button:focus, input:focus, select:focus, textarea:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .bg-gray-50 {
+        background-color: #111827;
+    }
+    
+    .bg-white {
+        background-color: #1f2937;
+    }
+    
+    .text-gray-800 {
+        color: #f9fafb;
+    }
+    
+    .text-gray-600 {
+        color: #d1d5db;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .gradient-bg {
+        background: #0000ff;
+    }
+    
+    .card-shadow {
+        box-shadow: 0 0 0 2px #000000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .pulse-animation, .fade-in, .loading-spinner, .register-modal {
+        animation: none;
+    }
+    
+    .transform, .hover\\:scale-105 {
+        transform: none;
+    }
+}
+
+/* Custom utility classes */
+.text-balance {
+    text-wrap: balance;
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Error states */
+.input-error {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.input-success {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
