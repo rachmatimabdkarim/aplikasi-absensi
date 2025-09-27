@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel Admin</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Supabase JS -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window.__SUPABASE_URL = "https://rwascvkexdjirtvggaiu.supabase.co";
+    window.__SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXNjdmtleGRqaXJ0dmdnYWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MjQzMjksImV4cCI6MjA3NDUwMDMyOX0.NkSE29IW1CO9o7z-mN0KxOwY9WHSedsDhH-TkAWtTjo";
+  </script>
+  <script defer src="admin.js"></script>
+  <style>
+    .container { max-width: 1080px; margin: 0 auto; padding: 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; margin-bottom: 16px; background: #fff; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .hidden { display: none !important; }
+    .muted { color: #6b7280; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; text-align: left; }
+    th { background: #fafafa; font-weight: 600; }
+    .btn { cursor: pointer; padding: 8px 12px; border-radius: 10px; border: 1px solid #e5e7eb; background: #fff; }
+    .btn.primary { background: #111827; color: #fff; border-color: #111827; }
+  </style>
+</head>
+<body>
+  <header class="container" style="display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a href="index.html" class="btn">← Kembali</a>
+      <h1 style="margin:0;">Panel Admin</h1>
+    </div>
+    <div>
+      <button id="logoutBtn" class="btn">Keluar</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="guardMessage" class="card hidden"></div>
+
+    <section id="stats" class="grid">
+      <div class="card">
+        <div class="muted">Total Pegawai</div>
+        <div id="statTotalEmployees" style="font-size:28px; font-weight:700;">—</div>
+      </div>
+      <div class="card">
+        <div class="muted">Lokasi Kantor</div>
+        <div id="statLocations" style="font-size:28px; font-weight:700;">—</div>
+      </div>
+      <div class="card">
+        <div class="muted">Absensi Hari Ini</div>
+        <div id="statTodayAttendance" style="font-size:28px; font-weight:700;">—</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <h2 style="margin:0;">Daftar Pegawai</h2>
+        <div style="display:flex; gap:8px;">
+          <input id="employeeSearch" class="btn" placeholder="Cari nama/NIP…" />
+          <button id="refreshEmployees" class="btn">Muat Ulang</button>
+        </div>
+      </div>
+      <div style="overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>NIP</th>
+              <th>Posisi</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="employeesTbody">
+            <tr><td colspan="4" class="muted">Memuat…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h2 style="margin:0;">Lokasi Kantor</h2>
+        <button id="refreshLocations" class="btn">Muat Ulang</button>
+      </div>
+      <div id="locationsList" class="muted">Memuat…</div>
+    </section>
+  </main>
+</body>
+</html>

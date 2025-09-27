@@ -1,0 +1,8 @@
+[build]
+  # kalau project statis, biasanya build command kosong atau "npm run build" kalau kamu punya proses build
+  command = ""
+  publish = "."                 # folder yang berisi file situs (index.html, dll)
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"      # biar Netlify nge-bundle dan include @supabase/supabase-js

@@ -1,0 +1,276 @@
+/* Custom Styles untuk Aplikasi Absensi */
+.gradient-bg {
+    background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+}
+
+.card-shadow {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.status-green { 
+    color: #059669; 
+    background-color: #d1fae5; 
+}
+
+.status-red { 
+    color: #dc2626; 
+    background-color: #fee2e2; 
+}
+
+.status-yellow { 
+    color: #d97706; 
+    background-color: #fef3c7; 
+}
+
+.status-blue { 
+    color: #2563eb; 
+    background-color: #dbeafe; 
+}
+
+.map-container {
+    height: 300px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.border-green { border-color: #10b981; }
+.border-red { border-color: #ef4444; }
+.border-yellow { border-color: #f59e0b; }
+.border-blue { border-color: #3b82f6; }
+
+.bg-green-50 { background-color: #f0fdf4; }
+.bg-red-50 { background-color: #fef2f2; }
+.bg-yellow-50 { background-color: #fffbeb; }
+.bg-blue-50 { background-color: #eff6ff; }
+
+/* Additional styles for register modal */
+.password-strength {
+    transition: all 0.3s ease;
+}
+
+.register-modal {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Password strength indicator */
+.password-strength-bar {
+    transition: all 0.3s ease;
+    width: 0%;
+}
+
+/* ============================================= */
+/* PERBAIKAN KHUSUS UNTUK MODAL REGISTER */
+/* ============================================= */
+
+#registerModal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    z-index: 9999 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#registerModal.flex {
+    display: flex !important;
+}
+
+#registerModal:not(.hidden) {
+    display: flex !important;
+}
+
+/* Pastikan modal content berada di atas */
+#registerModal > div {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    max-width: 90vw !important;
+    width: 100% !important;
+    max-width: 500px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    z-index: 10000 !important;
+    position: relative !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Override untuk modal lainnya */
+#successModal, #loadingOverlay {
+    z-index: 10001 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .map-container {
+        height: 200px;
+    }
+    
+    .hidden-mobile {
+        display: none;
+    }
+    
+    /* Responsive design untuk modal */
+    #registerModal > div {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        max-height: calc(100vh - 2rem);
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .card-shadow {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* Animation for success messages */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: slideInUp 0.3s ease-out;
+}
+
+/* Loading states */
+.skeleton-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Focus states for accessibility */
+button:focus, input:focus, select:focus, textarea:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .gradient-bg {
+        background: #0000ff;
+    }
+    
+    .card-shadow {
+        box-shadow: 0 0 0 2px #000000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .pulse-animation, .fade-in, .loading-spinner, .register-modal {
+        animation: none;
+    }
+    
+    .transform, .hover\\:scale-105 {
+        transform: none;
+    }
+}
+
+/* Custom utility classes */
+.text-balance {
+    text-wrap: balance;
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Error states */
+.input-error {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.input-success {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
