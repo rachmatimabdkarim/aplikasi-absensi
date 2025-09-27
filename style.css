@@ -248,3 +248,45 @@ button:focus, input:focus, select:focus, textarea:focus {
     border-color: #059669;
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
+/* Tambahkan style untuk modal register */
+#registerModal {
+    backdrop-filter: blur(5px);
+}
+
+#registerModal > div {
+    max-width: 90vw;
+    margin: 1rem;
+}
+
+/* Pastikan modal selalu di atas elemen lain */
+.fixed {
+    position: fixed;
+}
+
+.z-50 {
+    z-index: 50;
+}
+
+/* Pastikan kelas hidden dan flex bekerja dengan benar */
+.hidden {
+    display: none !important;
+}
+
+.flex {
+    display: flex !important;
+}
+
+/* Responsive design untuk modal */
+@media (max-width: 640px) {
+    #registerModal > div {
+        margin: 0.5rem;
+        max-height: 95vh;
+    }
+    
+    .register-modal {
+        padding: 1rem;
+    }
+}
+
+/* tailwind.css - Compiled Tailwind CSS */
+@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
