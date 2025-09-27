@@ -47,19 +47,15 @@ async function initializeApp() {
         showLoadingOverlay(true);
         console.log('🚀 Initializing application...');
         
-        // Cek apakah sudah ada admin terdaftar
         await checkAdminExists();
         
-        // Cek session yang aktif
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (session && session.user) {
-            console.log('✅ User already logged in from session');
             currentUser = session.user;
             await loadUserProfile();
             showMainApp();
         } else {
-            console.log('ℹ️ User not logged in, showing login screen');
             showLoginScreen();
         }
     } catch (error) {
@@ -67,10 +63,9 @@ async function initializeApp() {
         showLoginScreen();
     } finally {
         showLoadingOverlay(false);
-     
+        // JANGAN panggil setupEventListeners() di sini lagi
     }
 }
-
 // Fungsi untuk mengecek apakah sudah ada admin
 async function checkAdminExists() {
     try {
