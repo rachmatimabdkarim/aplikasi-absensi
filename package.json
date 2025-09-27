@@ -1,0 +1,19 @@
+{
+  "name": "absensi_ppnpn",
+  "version": "1.0.0",
+  "description": "Aplikasi absensi online berbasis lokasi untuk pegawai PPNPN Kantor Guru dan Tenaga Kependidikan Provinsi Maluku Utara.",
+  "main": "admin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@netlify/edge-functions-bootstrap": "^2.17.1",
+    "netlify-cli": "^23.8.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.58.0"
+  }
+}
