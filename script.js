@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeApp() {
     try {
         showLoadingOverlay(true);
+        console.log('🚀 Initializing application...');
         
         // Cek apakah sudah ada admin terdaftar
         await checkAdminExists();
@@ -45,19 +46,21 @@ async function initializeApp() {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (session && session.user) {
-            console.log('✅ User sudah login dari session');
+            console.log('✅ User already logged in from session');
             currentUser = session.user;
             await loadUserProfile();
             showMainApp();
         } else {
-            console.log('ℹ️ User belum login, tampilkan halaman login');
+            console.log('ℹ️ User not logged in, showing login screen');
             showLoginScreen();
         }
     } catch (error) {
-        console.error('❌ Error saat inisialisasi:', error);
+        console.error('❌ Error during initialization:', error);
         showLoginScreen();
     } finally {
         showLoadingOverlay(false);
+        // Setup event listeners SETELAH DOM siap
+        setTimeout(setupEventListeners, 100);
     }
 }
 
@@ -89,33 +92,69 @@ async function checkAdminExists() {
 
 function setupEventListeners() {
     // Login form
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
     
     // Logout button
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
     
     // Attendance buttons
-    document.getElementById('checkInBtn').addEventListener('click', handleCheckIn);
-    document.getElementById('checkOutBtn').addEventListener('click', handleCheckOut);
+    const checkInBtn = document.getElementById('checkInBtn');
+    if (checkInBtn) {
+        checkInBtn.addEventListener('click', handleCheckIn);
+    }
+    
+    const checkOutBtn = document.getElementById('checkOutBtn');
+    if (checkOutBtn) {
+        checkOutBtn.addEventListener('click', handleCheckOut);
+    }
     
     // Location refresh
-    document.getElementById('refreshLocationBtn').addEventListener('click', getUserLocation);
+    const refreshLocationBtn = document.getElementById('refreshLocationBtn');
+    if (refreshLocationBtn) {
+        refreshLocationBtn.addEventListener('click', getUserLocation);
+    }
     
     // History refresh
-    document.getElementById('refreshHistoryBtn').addEventListener('click', loadRecentActivity);
+    const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+    if (refreshHistoryBtn) {
+        refreshHistoryBtn.addEventListener('click', loadRecentActivity);
+    }
     
     // Modal close
-    document.getElementById('closeModal').addEventListener('click', closeModal);
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+    }
     
     // Admin panel navigation
-    document.getElementById('adminPanelBtn').addEventListener('click', showAdminPanel);
-    document.getElementById('backToMainBtn').addEventListener('click', showMainApp);
+    const adminPanelBtn = document.getElementById('adminPanelBtn');
+    if (adminPanelBtn) {
+        adminPanelBtn.addEventListener('click', showAdminPanel);
+    }
+    
+    const backToMainBtn = document.getElementById('backToMainBtn');
+    if (backToMainBtn) {
+        backToMainBtn.addEventListener('click', showMainApp);
+    }
     
     // Search and filter
-    document.getElementById('searchEmployee').addEventListener('input', filterEmployees);
-    document.getElementById('filterPosition').addEventListener('change', filterEmployees);
+    const searchEmployee = document.getElementById('searchEmployee');
+    if (searchEmployee) {
+        searchEmployee.addEventListener('input', filterEmployees);
+    }
     
-    // Register functionality
+    const filterPosition = document.getElementById('filterPosition');
+    if (filterPosition) {
+        filterPosition.addEventListener('change', filterEmployees);
+    }
+    
+    // Register functionality - PASTIKAN INI DIPANGGIL
     setupRegisterListeners();
 }
 
@@ -123,44 +162,103 @@ function setupEventListeners() {
 // FUNGSI REGISTRASI ADMIN
 // =============================================
 function setupRegisterListeners() {
+    console.log('🔧 Setting up register listeners...');
+    
     // Tombol show register modal
     const showRegisterBtn = document.getElementById('showRegisterBtn');
     if (showRegisterBtn) {
+        console.log('✅ Register button found, adding event listener');
         showRegisterBtn.addEventListener('click', showRegisterModal);
+    } else {
+        console.log('❌ Register button not found');
     }
     
     // Tombol close register modal
-    document.getElementById('closeRegisterModal').addEventListener('click', closeRegisterModal);
-    document.getElementById('cancelRegisterBtn').addEventListener('click', closeRegisterModal);
+    const closeRegisterModalBtn = document.getElementById('closeRegisterModal');
+    if (closeRegisterModalBtn) {
+        closeRegisterModalBtn.addEventListener('click', closeRegisterModal);
+    }
+    
+    const cancelRegisterBtn = document.getElementById('cancelRegisterBtn');
+    if (cancelRegisterBtn) {
+        cancelRegisterBtn.addEventListener('click', closeRegisterModal);
+    }
     
     // Form submit
-    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
+    }
     
-    // Real-time validation
-    document.getElementById('registerPassword').addEventListener('input', validatePasswordStrength);
-    document.getElementById('registerConfirmPassword').addEventListener('input', validatePasswordMatch);
-    document.getElementById('registerNik').addEventListener('input', formatEmailFromNIK);
+    // Real-time validation - hanya jika elemen ada
+    const registerPassword = document.getElementById('registerPassword');
+    if (registerPassword) {
+        registerPassword.addEventListener('input', validatePasswordStrength);
+    }
+    
+    const registerConfirmPassword = document.getElementById('registerConfirmPassword');
+    if (registerConfirmPassword) {
+        registerConfirmPassword.addEventListener('input', validatePasswordMatch);
+    }
+    
+    const registerNik = document.getElementById('registerNik');
+    if (registerNik) {
+        registerNik.addEventListener('input', formatEmailFromNIK);
+    }
+    
+    console.log('✅ Register listeners setup completed');
 }
 
 function showRegisterModal() {
+    console.log('🎯 Show register modal called');
+    
     // Jika sudah ada admin, jangan tampilkan modal
     if (hasAdmin) {
+        console.log('❌ Admin already exists, blocking registration');
         showErrorModal('Akses Ditolak', 'Fitur registrasi sudah dinonaktifkan karena sudah ada admin terdaftar.');
         return;
     }
     
-    document.getElementById('registerModal').classList.remove('hidden');
-    document.getElementById('registerModal').classList.add('flex');
+    const registerModal = document.getElementById('registerModal');
+    if (registerModal) {
+        registerModal.classList.remove('hidden');
+        registerModal.classList.add('flex');
+        console.log('✅ Register modal shown');
+    } else {
+        console.log('❌ Register modal element not found');
+        return;
+    }
     
     // Reset form
-    document.getElementById('registerForm').reset();
-    document.getElementById('registerError').classList.add('hidden');
-    document.getElementById('registerSuccess').classList.add('hidden');
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.reset();
+    }
+    
+    const registerError = document.getElementById('registerError');
+    if (registerError) {
+        registerError.classList.add('hidden');
+    }
+    
+    const registerSuccess = document.getElementById('registerSuccess');
+    if (registerSuccess) {
+        registerSuccess.classList.add('hidden');
+    }
+    
+    // Reset password strength indicator
+    const strengthContainer = document.querySelector('.password-strength');
+    if (strengthContainer) {
+        strengthContainer.classList.add('hidden');
+    }
 }
 
 function closeRegisterModal() {
-    document.getElementById('registerModal').classList.add('hidden');
-    document.getElementById('registerModal').classList.remove('flex');
+    const registerModal = document.getElementById('registerModal');
+    if (registerModal) {
+        registerModal.classList.add('hidden');
+        registerModal.classList.remove('flex');
+        console.log('✅ Register modal closed');
+    }
 }
 
 function formatEmailFromNIK() {
