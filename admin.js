@@ -2,8 +2,8 @@
 
 (function initSupabaseClient(){
   // 1) Ambil kredensial dari global (set di admin_styled.html) atau fallback
-  const SUPABASE_URL  = window.__SUPABASE_URL  || window.SUPABASE_URL  || "";
-  const SUPABASE_ANON = window.__SUPABASE_ANON || window.SUPABASE_ANON || "";
+  const SUPABASE_URL  = window.__SUPABASE_URL  || window.SUPABASE_URL  || "https://rwascvkexdjirtvggaiu.supabase.co";
+  const SUPABASE_ANON = window.__SUPABASE_ANON || window.SUPABASE_ANON || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXNjdmtleGRqaXJ0dmdnYWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MjQzMjksImV4cCI6MjA3NDUwMDMyOX0.NkSE29IW1CO9o7z-mN0KxOwY9WHSedsDhH-TkAWtTjo";
 
   // 2) Pastikan lib @supabase/supabase-js ada
   const SB = (window.supabase && window.supabase.createClient)
