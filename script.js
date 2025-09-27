@@ -28,10 +28,12 @@ let hasAdmin = false;
 // =============================================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Aplikasi Absensi PPNPN dimulai...');
-    initializeApp();
+    // Pasang event listener lebih dulu agar tombol selalu hidup meski init gagal
     setupEventListeners();
     updateDateTime();
     setInterval(updateDateTime, 1000);
+    // Baru jalankan init
+    initializeApp();
 });
 
 async function initializeApp() {
@@ -206,6 +208,44 @@ function setupRegisterListeners() {
     console.log('✅ Register listeners setup completed');
 }
 
+// --- Safety: Explicit listeners for register modal/buttons ---
+(function ensureRegisterListeners(){ 
+  try {
+    const showRegisterBtn = document.getElementById('showRegisterBtn');
+    if (showRegisterBtn && !showRegisterBtn.__patched) {
+      showRegisterBtn.addEventListener('click', (e)=>{ 
+        e.preventDefault();
+        console.log('🧩 showRegisterBtn clicked');
+        showRegisterModal();
+      });
+      showRegisterBtn.__patched = true;
+    }
+
+    const registerBtn = document.getElementById('registerBtn');
+    const registerForm = document.getElementById('registerForm');
+    if (registerBtn && registerForm && !registerBtn.__patched) {
+      registerBtn.addEventListener('click', (e)=>{
+        // biarkan submit form standar memicu handleRegister
+        console.log('🧩 registerBtn clicked');
+      });
+      registerBtn.__patched = true;
+    }
+
+    const closeRegisterModalBtn = document.getElementById('closeRegisterModal');
+    if (closeRegisterModalBtn && !closeRegisterModalBtn.__patched) {
+      closeRegisterModalBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        closeRegisterModal();
+      });
+      closeRegisterModalBtn.__patched = true;
+    }
+  } catch(err) {
+    console.warn('ensureRegisterListeners failed:', err);
+  }
+})();
+
+
+
 function showRegisterModal() {
     console.log('🎯 Show register modal called');
     
@@ -217,6 +257,7 @@ function showRegisterModal() {
     }
     
     const registerModal = document.getElementById('registerModal');
+    if (registerModal) { registerModal.classList.remove('hidden'); registerModal.style.display='flex'; }
     if (registerModal) {
         console.log('✅ Register modal element found');
         
@@ -1362,34 +1403,23 @@ async function loadRecentActivity() {
 // =============================================
 // FUNGSI PANEL ADMIN (TIDAK BERUBAH)
 // =============================================
-async async function showAdminPanel() {
-    try {
+async function showAdminPanel() {
     if (userProfile.position !== 'Admin') {
         showErrorModal('Akses Ditolak', 'Anda tidak memiliki akses ke panel admin.');
         return;
     }
     
-    const loginScreen = document.getElementById('loginScreen');
-    const mainApp = document.getElementById('mainApp');
-    const adminPanel = document.getElementById('adminPanel');
-
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (mainApp) {
-        mainApp.style.display = 'none';
-        mainApp.classList.add('hidden');
-    }
-    if (adminPanel) {
-        adminPanel.classList.remove('hidden');
-        adminPanel.style.display = 'block';
-    }
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('adminPanel').classList.remove('hidden');
     
     await loadAdminStatistics();
     await loadOfficeLocations();
     await loadAllEmployees();
-    } catch (err) {
-        console.error('Failed to open admin panel:', err);
-        showErrorModal('Gagal membuka Panel Admin', (err && err.message) ? err.message : 'Terjadi kesalahan tak terduga.');
-    }
+}
+
+function showMainApp() {
+    document.getElementById('adminPanel').classList.add('hidden');
+    document.getElementById('mainApp').style.display = 'block';
 }
 
 async function loadAdminStatistics() {
@@ -1620,6 +1650,12 @@ function showLoginScreen() {
     document.getElementById('mainApp').classList.add('hidden');
 }
 
+function showMainApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('mainApp').classList.add('fade-in');
+}
+
 function showError(element, message) {
     if (!element) return;
     
@@ -1704,24 +1740,3 @@ window.viewEmployeeAttendance = function(employeeId) {
 }
 
 console.log('🎉 Aplikasi Absensi PPNPN siap digunakan!');
-
-// --- Canonical showMainApp (patched) ---
-
-function showMainApp() {
-    const loginScreen = document.getElementById('loginScreen');
-    const mainApp = document.getElementById('mainApp');
-    const adminPanel = document.getElementById('adminPanel');
-
-    if (loginScreen) loginScreen.classList.add('hidden');
-
-    if (adminPanel) {
-        adminPanel.classList.add('hidden');
-        adminPanel.style.display = 'none';
-    }
-
-    if (mainApp) {
-        mainApp.classList.remove('hidden');
-        mainApp.style.display = 'block';
-    }
-}
-
