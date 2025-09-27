@@ -1,11 +1,3 @@
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Aplikasi Absensi PPNPN dimulai...');
-    initializeApp();
-    setupEventListeners(); // PANGGIL SEKALI SAJA DI SINI
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-});
-
 // =============================================
 // KONFIGURASI SUPABASE - GANTI DENGAN DATA ANDA
 // =============================================
@@ -29,7 +21,7 @@ let userMarker = null;
 let officeMarkers = [];
 let allEmployees = [];
 let filteredEmployees = [];
-let hasAdmin = false; // Flag untuk mengecek apakah sudah ada admin
+let hasAdmin = false;
 
 // =============================================
 // INISIALISASI APLIKASI
@@ -45,27 +37,30 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeApp() {
     try {
         showLoadingOverlay(true);
-        console.log('🚀 Initializing application...');
         
+        // Cek apakah sudah ada admin terdaftar
         await checkAdminExists();
         
+        // Cek session yang aktif
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (session && session.user) {
+            console.log('✅ User sudah login dari session');
             currentUser = session.user;
             await loadUserProfile();
             showMainApp();
         } else {
+            console.log('ℹ️ User belum login, tampilkan halaman login');
             showLoginScreen();
         }
     } catch (error) {
-        console.error('❌ Error during initialization:', error);
+        console.error('❌ Error saat inisialisasi:', error);
         showLoginScreen();
     } finally {
         showLoadingOverlay(false);
-        // JANGAN panggil setupEventListeners() di sini lagi
     }
 }
+
 // Fungsi untuk mengecek apakah sudah ada admin
 async function checkAdminExists() {
     try {
@@ -156,12 +151,12 @@ function setupEventListeners() {
         filterPosition.addEventListener('change', filterEmployees);
     }
     
-    // Register functionality - PASTIKAN INI DIPANGGIL
+    // Register functionality
     setupRegisterListeners();
 }
 
 // =============================================
-// FUNGSI REGISTRASI ADMIN
+// FUNGSI REGISTRASI ADMIN - PERBAIKAN UTAMA
 // =============================================
 function setupRegisterListeners() {
     console.log('🔧 Setting up register listeners...');
@@ -192,7 +187,7 @@ function setupRegisterListeners() {
         registerForm.addEventListener('submit', handleRegister);
     }
     
-    // Real-time validation - hanya jika elemen ada
+    // Real-time validation
     const registerPassword = document.getElementById('registerPassword');
     if (registerPassword) {
         registerPassword.addEventListener('input', validatePasswordStrength);
@@ -225,14 +220,11 @@ function showRegisterModal() {
     if (registerModal) {
         console.log('✅ Register modal element found');
         
-        // HAPUS SEMUA KELAS YANG MENG-HIDDEN-KAN MODAL
+        // PERBAIKAN UTAMA: Hapus hidden class dan set display flex
         registerModal.classList.remove('hidden');
         registerModal.style.display = 'flex';
-        registerModal.style.opacity = '1';
-        registerModal.style.visibility = 'visible';
         
-        console.log('✅ Register modal classes after show:', registerModal.classList);
-        console.log('✅ Register modal style.display:', registerModal.style.display);
+        console.log('✅ Register modal shown with display:', registerModal.style.display);
     } else {
         console.log('❌ Register modal element not found');
         return;
@@ -260,6 +252,7 @@ function showRegisterModal() {
         strengthContainer.classList.add('hidden');
     }
 }
+
 function closeRegisterModal() {
     const registerModal = document.getElementById('registerModal');
     if (registerModal) {
@@ -540,7 +533,7 @@ function showRegisterSuccess(title, message) {
 }
 
 // =============================================
-// FUNGSI AUTHENTIKASI
+// FUNGSI AUTHENTIKASI (TIDAK BERUBAH)
 // =============================================
 async function handleLogin(e) {
     e.preventDefault();
@@ -613,7 +606,7 @@ async function handleLogout() {
 }
 
 // =============================================
-// FUNGSI PROFIL USER
+// FUNGSI PROFIL USER (TIDAK BERUBAH)
 // =============================================
 async function loadUserProfile() {
     try {
@@ -672,7 +665,7 @@ function updateUserInterface() {
 }
 
 // =============================================
-// FUNGSI ABSENSI
+// FUNGSI ABSENSI (TIDAK BERUBAH)
 // =============================================
 async function loadTodayAttendance() {
     try {
@@ -906,7 +899,7 @@ async function handleCheckOut() {
 }
 
 // =============================================
-// FUNGSI LOKASI DAN PETA
+// FUNGSI LOKASI DAN PETA (TIDAK BERUBAH)
 // =============================================
 function getUserLocation() {
     console.log('📍 Getting user location...');
@@ -1105,7 +1098,7 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 }
 
 // =============================================
-// FUNGSI PETA
+// FUNGSI PETA (TIDAK BERUBAH)
 // =============================================
 function initMap() {
     if (!userLocation) return;
@@ -1171,7 +1164,7 @@ function createMap() {
 }
 
 // =============================================
-// FUNGSI STATISTIK DAN RIWAYAT
+// FUNGSI STATISTIK DAN RIWAYAT (TIDAK BERUBAH)
 // =============================================
 async function loadAttendanceStats() {
     try {
@@ -1331,7 +1324,7 @@ async function loadRecentActivity() {
 }
 
 // =============================================
-// FUNGSI PANEL ADMIN
+// FUNGSI PANEL ADMIN (TIDAK BERUBAH)
 // =============================================
 async function showAdminPanel() {
     if (userProfile.position !== 'Admin') {
@@ -1550,7 +1543,7 @@ function filterEmployees() {
 }
 
 // =============================================
-// FUNGSI UTILITAS
+// FUNGSI UTILITAS (TIDAK BERUBAH)
 // =============================================
 function updateDateTime() {
     const now = new Date();
@@ -1631,7 +1624,7 @@ function showLoadingOverlay(show) {
 }
 
 // =============================================
-// FUNGSI GLOBAL UNTUK PANEL ADMIN
+// FUNGSI GLOBAL UNTUK PANEL ADMIN (TIDAK BERUBAH)
 // =============================================
 window.toggleOfficeStatus = async function(officeId) {
     try {
