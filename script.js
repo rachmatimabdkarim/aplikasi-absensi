@@ -1,15 +1,9 @@
-// Debug code - hapus setelah berfungsi
-console.log('🔄 Script.js loaded successfully');
-console.log('🔍 Checking for register button...');
-console.log('Register button element:', document.getElementById('showRegisterBtn'));
-
-// Force setup after DOM load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🏠 DOM fully loaded');
-    setTimeout(function() {
-        console.log('🔧 Manually setting up register listeners');
-        setupRegisterListeners();
-    }, 500);
+    console.log('🚀 Aplikasi Absensi PPNPN dimulai...');
+    initializeApp();
+    setupEventListeners(); // PANGGIL SEKALI SAJA DI SINI
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
 });
 
 // =============================================
@@ -73,8 +67,7 @@ async function initializeApp() {
         showLoginScreen();
     } finally {
         showLoadingOverlay(false);
-        // Setup event listeners SETELAH DOM siap
-        setTimeout(setupEventListeners, 100);
+     
     }
 }
 
