@@ -2,7 +2,7 @@
 // KONFIGURASI SUPABASE - GANTI DENGAN DATA ANDA
 // =============================================
 const SUPABASE_URL = 'https://rwascvkexdjirtvggaiu.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXNjdmtleGRqaXJ0dmdnYWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE5MjUyNTMsImV4cCI6MjAzNzUwMTI1M30.6n7W2dH1pN2eTFaZ-GaKqk0d7Cq8eRl2lK1KjL1Y7bE';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXNjdmtleGRqaXJ0dmdnYWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MjQzMjksImV4cCI6MjA3NDUwMDMyOX0.NkSE29IW1CO9o7z-mN0KxOwY9WHSedsDhH-TkAWtTjo';
 
 // Inisialisasi Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
