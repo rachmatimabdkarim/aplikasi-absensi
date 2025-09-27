@@ -1377,8 +1377,25 @@ async function showAdminPanel() {
 }
 
 function showMainApp() {
-    document.getElementById('adminPanel').classList.add('hidden');
-    document.getElementById('mainApp').style.display = 'block';
+  const loginScreen = document.getElementById('loginScreen');
+  const mainApp = document.getElementById('mainApp');
+  const adminPanel = document.getElementById('adminPanel');
+
+  // Sembunyikan layar login
+  if (loginScreen) loginScreen.classList.add('hidden');
+
+  // Sembunyikan panel admin saat kembali ke main app
+  if (adminPanel) {
+    adminPanel.classList.add('hidden');
+    adminPanel.style.display = 'none';
+  }
+
+  // Tampilkan main app
+  if (mainApp) {
+    mainApp.classList.remove('hidden');
+    mainApp.style.display = 'block';
+    mainApp.classList.add('fade-in');
+  }
 }
 
 async function loadAdminStatistics() {
@@ -1607,12 +1624,6 @@ function updateDateTime() {
 function showLoginScreen() {
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('mainApp').classList.add('hidden');
-}
-
-function showMainApp() {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('mainApp').classList.remove('hidden');
-    document.getElementById('mainApp').classList.add('fade-in');
 }
 
 function showError(element, message) {
