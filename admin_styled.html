@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel Admin — Absensi PPNPN</title>
+  <!-- Tailwind CDN (samakan utilitas dengan index.html) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom styles already digunakan di index.html -->
+  <link rel="stylesheet" href="style.css" />
+  <!-- Supabase JS -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Admin logic -->
+  <script defer src="admin.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <!-- HEADER -->
+  <header class="gradient-bg text-white p-4 shadow-lg sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="inline-flex items-center px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition">
+          ← Kembali
+        </a>
+        <h1 class="text-lg md:text-xl font-semibold">Panel Admin</h1>
+      </div>
+      <button id="logoutBtn" class="bg-white text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition">
+        Keluar
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+    <!-- Guard Message -->
+    <div id="guardMessage" class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 hidden"></div>
+
+    <!-- STAT CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl card-shadow p-6 fade-in text-center">
+        <p class="text-sm text-gray-500 mb-2">👥 Total Pegawai</p>
+        <p id="statTotalEmployees" class="text-3xl font-bold text-blue-600">—</p>
+      </div>
+      <div class="bg-white rounded-xl card-shadow p-6 fade-in text-center">
+        <p class="text-sm text-gray-500 mb-2">🏢 Lokasi Kantor</p>
+        <p id="statLocations" class="text-3xl font-bold text-purple-600">—</p>
+      </div>
+      <div class="bg-white rounded-xl card-shadow p-6 fade-in text-center">
+        <p class="text-sm text-gray-500 mb-2">🗓️ Absensi Hari Ini</p>
+        <p id="statTodayAttendance" class="text-3xl font-bold text-emerald-600">—</p>
+      </div>
+    </section>
+
+    <!-- EMPLOYEE TABLE -->
+    <section class="bg-white rounded-xl card-shadow p-4 md:p-6 fade-in">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <h2 class="text-lg font-semibold">Daftar Pegawai</h2>
+        <div class="flex items-center gap-2">
+          <input id="employeeSearch" placeholder="Cari nama/NIP/email…" class="w-56 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <button id="refreshEmployees" class="px-3 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition">
+            Muat Ulang
+          </button>
+        </div>
+      </div>
+      <div class="overflow-auto rounded-lg border border-gray-200">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr class="text-left">
+              <th class="px-4 py-3 font-semibold text-gray-600">Nama</th>
+              <th class="px-4 py-3 font-semibold text-gray-600">NIP</th>
+              <th class="px-4 py-3 font-semibold text-gray-600">Posisi</th>
+              <th class="px-4 py-3 font-semibold text-gray-600">Email</th>
+            </tr>
+          </thead>
+          <tbody id="employeesTbody">
+            <tr><td class="px-4 py-3 text-gray-500" colspan="4">Memuat…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- LOCATIONS -->
+    <section class="bg-white rounded-xl card-shadow p-4 md:p-6 fade-in">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">Lokasi Kantor</h2>
+        <button id="refreshLocations" class="px-3 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition">
+          Muat Ulang
+        </button>
+      </div>
+      <div id="locationsList" class="text-gray-500">Memuat…</div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-gray-500 py-6">
+      © 2025 Kantor GTK Provinsi Maluku Utara · Kemendikbudristek
+    </footer>
+  </main>
+</body>
+</html>
