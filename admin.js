@@ -1,4 +1,4 @@
-/** admin.js — Panel Admin terpisah (sinkron style & skema, plus CRUD Pegawai) */
+/** admin.js — Panel Admin terpisah (sinkron style & skema, plus CRUD Pegawai + Reset Password) */
 
 /* =========================
    Inisialisasi Supabase
@@ -102,7 +102,7 @@ async function loadStats(){
     }
     setNumber("statLocations", locations);
 
-    // Absensi hari ini — catatan: butuh RLS khusus agar Admin bisa lihat semua organisasi
+    // Absensi hari ini — catatan: butuh RLS khusus agar Admin bisa lihat semua org
     let todayCount = 0;
     {
       const d = new Date();
@@ -154,7 +154,7 @@ async function loadEmployees(q=""){
     }
 
     tbody.innerHTML = data.map(r => `
-      <tr data-id="${r.id}">
+      <tr data-id="${r.id}" data-email="${r.email ?? ''}">
         <td class="px-4 py-3">${r.name ?? "-"}</td>
         <td class="px-4 py-3">${r.nik ?? "-"}</td>
         <td class="px-4 py-3">${r.position ?? "-"}</td>
@@ -162,6 +162,7 @@ async function loadEmployees(q=""){
         <td class="px-4 py-3">
           <button class="edit-emp px-2 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">Edit</button>
           <button class="del-emp px-2 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50">Hapus</button>
+          <button class="reset-pw px-2 py-1 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50">Reset</button>
         </td>
       </tr>
     `).join("");
@@ -257,6 +258,45 @@ async function deleteEmployeeById(id){
   }
 }
 
+/* ======== Reset Password (trigger email recovery via server function) ======== */
+async function resetEmployeePassword(email){
+  if (!email) {
+    alert('Email pegawai tidak ditemukan.');
+    return;
+  }
+  if (!confirm(`Kirim email reset password ke ${email}?`)) return;
+
+  try {
+    // Ambil access token admin saat ini untuk verifikasi di server
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      alert('Sesi tidak valid. Silakan login ulang.');
+      return;
+    }
+
+    const resp = await fetch('/.netlify/functions/reset-employee-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Kirim token admin agar server bisa verifikasi role Admin
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ email })
+    });
+
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw new Error(json?.error || `Gagal reset password (status ${resp.status})`);
+    }
+
+    alert(`Email reset password telah dikirim ke ${email}.`);
+  } catch (err) {
+    console.error('resetEmployeePassword error:', err);
+    alert('Gagal reset password: ' + (err?.message || 'unknown error'));
+  }
+}
+
 /* =========================
    Daftar Lokasi (offices)
 ========================= */
@@ -334,6 +374,8 @@ async function initAdminPage(){
       const tr = ev.target.closest("tr[data-id]");
       if (!tr) return;
       const id = tr.getAttribute("data-id");
+      const email = tr.getAttribute("data-email") || tr.querySelector('td:nth-child(4)')?.textContent?.trim() || '';
+
       if (ev.target.classList.contains("edit-emp")) {
         const tds = tr.querySelectorAll("td");
         openEmployeeModal("edit", {
@@ -345,6 +387,8 @@ async function initAdminPage(){
         });
       } else if (ev.target.classList.contains("del-emp")) {
         deleteEmployeeById(id);
+      } else if (ev.target.classList.contains("reset-pw")) {
+        resetEmployeePassword(email);
       }
     });
   }
