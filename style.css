@@ -96,6 +96,51 @@
     width: 0%;
 }
 
+/* ============================================= */
+/* PERBAIKAN KHUSUS UNTUK MODAL REGISTER */
+/* ============================================= */
+
+#registerModal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    z-index: 9999 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#registerModal.flex {
+    display: flex !important;
+}
+
+#registerModal:not(.hidden) {
+    display: flex !important;
+}
+
+/* Pastikan modal content berada di atas */
+#registerModal > div {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    max-width: 90vw !important;
+    width: 100% !important;
+    max-width: 500px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    z-index: 10000 !important;
+    position: relative !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Override untuk modal lainnya */
+#successModal, #loadingOverlay {
+    z-index: 10001 !important;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .map-container {
@@ -106,7 +151,7 @@
         display: none;
     }
     
-    /* Responsive design for modal */
+    /* Responsive design untuk modal */
     #registerModal > div {
         margin: 1rem;
         width: calc(100% - 2rem);
@@ -183,25 +228,6 @@ button:focus, input:focus, select:focus, textarea:focus {
     outline-offset: 2px;
 }
 
-/* Dark mode support (optional) */
-@media (prefers-color-scheme: dark) {
-    .bg-gray-50 {
-        background-color: #111827;
-    }
-    
-    .bg-white {
-        background-color: #1f2937;
-    }
-    
-    .text-gray-800 {
-        color: #f9fafb;
-    }
-    
-    .text-gray-600 {
-        color: #d1d5db;
-    }
-}
-
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .gradient-bg {
@@ -247,104 +273,4 @@ button:focus, input:focus, select:focus, textarea:focus {
 .input-success {
     border-color: #059669;
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-}
-/* Tambahkan style untuk modal register */
-#registerModal {
-    backdrop-filter: blur(5px);
-}
-
-#registerModal > div {
-    max-width: 90vw;
-    margin: 1rem;
-}
-
-/* Pastikan modal selalu di atas elemen lain */
-.fixed {
-    position: fixed;
-}
-
-.z-50 {
-    z-index: 50;
-}
-
-/* Pastikan kelas hidden dan flex bekerja dengan benar */
-.hidden {
-    display: none !important;
-}
-
-.flex {
-    display: flex !important;
-}
-
-/* Responsive design untuk modal */
-@media (max-width: 640px) {
-    #registerModal > div {
-        margin: 0.5rem;
-        max-height: 95vh;
-    }
-    
-    .register-modal {
-        padding: 1rem;
-    }
-}
-
-/* tailwind.css - Compiled Tailwind CSS */
-@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
-
-/* ============================================= */
-/* FIX UNTUK MODAL REGISTER */
-/* ============================================= */
-
-#registerModal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    z-index: 9999 !important;
-    display: none !important; /* Default hidden */
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-#registerModal.flex {
-    display: flex !important;
-}
-
-#registerModal:not(.hidden) {
-    display: flex !important;
-}
-
-/* Pastikan modal content berada di atas */
-#registerModal > div {
-    background: white !important;
-    border-radius: 12px !important;
-    padding: 24px !important;
-    max-width: 90vw !important;
-    width: 100% !important;
-    max-width: 500px !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
-    z-index: 10000 !important;
-    position: relative !important;
-}
-
-/* Override Tailwind jika perlu */
-.fixed {
-    position: fixed !important;
-}
-
-.z-50 {
-    z-index: 50 !important;
-}
-
-/* Pastikan backdrop blur bekerja */
-.backdrop-blur {
-    backdrop-filter: blur(5px) !important;
-}
-
-/* Debug border - HAPUS SETELAH BERHASIL */
-#registerModal {
-    border: 2px solid red !important; /* Hapus line ini setelah modal tampil */
 }
