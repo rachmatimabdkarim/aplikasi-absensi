@@ -1362,40 +1362,34 @@ async function loadRecentActivity() {
 // =============================================
 // FUNGSI PANEL ADMIN (TIDAK BERUBAH)
 // =============================================
-async function showAdminPanel() {
+async async function showAdminPanel() {
+    try {
     if (userProfile.position !== 'Admin') {
         showErrorModal('Akses Ditolak', 'Anda tidak memiliki akses ke panel admin.');
         return;
     }
     
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('adminPanel').classList.remove('hidden');
+    const loginScreen = document.getElementById('loginScreen');
+    const mainApp = document.getElementById('mainApp');
+    const adminPanel = document.getElementById('adminPanel');
+
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (mainApp) {
+        mainApp.style.display = 'none';
+        mainApp.classList.add('hidden');
+    }
+    if (adminPanel) {
+        adminPanel.classList.remove('hidden');
+        adminPanel.style.display = 'block';
+    }
     
     await loadAdminStatistics();
     await loadOfficeLocations();
     await loadAllEmployees();
-}
-
-function showMainApp() {
-  const loginScreen = document.getElementById('loginScreen');
-  const mainApp = document.getElementById('mainApp');
-  const adminPanel = document.getElementById('adminPanel');
-
-  // Sembunyikan layar login
-  if (loginScreen) loginScreen.classList.add('hidden');
-
-  // Sembunyikan panel admin saat kembali ke main app
-  if (adminPanel) {
-    adminPanel.classList.add('hidden');
-    adminPanel.style.display = 'none';
-  }
-
-  // Tampilkan main app
-  if (mainApp) {
-    mainApp.classList.remove('hidden');
-    mainApp.style.display = 'block';
-    mainApp.classList.add('fade-in');
-  }
+    } catch (err) {
+        console.error('Failed to open admin panel:', err);
+        showErrorModal('Gagal membuka Panel Admin', (err && err.message) ? err.message : 'Terjadi kesalahan tak terduga.');
+    }
 }
 
 async function loadAdminStatistics() {
@@ -1710,3 +1704,24 @@ window.viewEmployeeAttendance = function(employeeId) {
 }
 
 console.log('🎉 Aplikasi Absensi PPNPN siap digunakan!');
+
+// --- Canonical showMainApp (patched) ---
+
+function showMainApp() {
+    const loginScreen = document.getElementById('loginScreen');
+    const mainApp = document.getElementById('mainApp');
+    const adminPanel = document.getElementById('adminPanel');
+
+    if (loginScreen) loginScreen.classList.add('hidden');
+
+    if (adminPanel) {
+        adminPanel.classList.add('hidden');
+        adminPanel.style.display = 'none';
+    }
+
+    if (mainApp) {
+        mainApp.classList.remove('hidden');
+        mainApp.style.display = 'block';
+    }
+}
+
