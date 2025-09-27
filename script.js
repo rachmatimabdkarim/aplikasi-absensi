@@ -1,13 +1,8 @@
 // =============================================
 // KONFIGURASI SUPABASE - GANTI DENGAN DATA ANDA
 // =============================================
-// Cara mendapatkan URL dan Key:
-// 1. Buka Supabase Dashboard -> Project Settings -> API
-// 2. Copy "Project URL" dan "anon public" key
-// 3. Ganti placeholder di bawah dengan data asli
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = 'https://rwascvkexdjirtvggaiu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXNjdmtleGRqaXJ0dmdnYWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE5MjUyNTMsImV4cCI6MjAzNzUwMTI1M30.6n7W2dH1pN2eTFaZ-GaKqk0d7Cq8eRl2lK1KjL1Y7bE';
 
 // Inisialisasi Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -26,6 +21,7 @@ let userMarker = null;
 let officeMarkers = [];
 let allEmployees = [];
 let filteredEmployees = [];
+let hasAdmin = false; // Flag untuk mengecek apakah sudah ada admin
 
 // =============================================
 // INISIALISASI APLIKASI
@@ -41,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeApp() {
     try {
         showLoadingOverlay(true);
+        
+        // Cek apakah sudah ada admin terdaftar
+        await checkAdminExists();
         
         // Cek session yang aktif
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -59,6 +58,32 @@ async function initializeApp() {
         showLoginScreen();
     } finally {
         showLoadingOverlay(false);
+    }
+}
+
+// Fungsi untuk mengecek apakah sudah ada admin
+async function checkAdminExists() {
+    try {
+        const { data, error } = await supabase
+            .from('employees')
+            .select('id')
+            .eq('position', 'Admin')
+            .limit(1);
+        
+        if (!error && data && data.length > 0) {
+            hasAdmin = true;
+            // Sembunyikan tombol register jika sudah ada admin
+            const registerBtn = document.getElementById('showRegisterBtn');
+            if (registerBtn) {
+                registerBtn.style.display = 'none';
+            }
+        } else {
+            hasAdmin = false;
+        }
+        console.log('✅ Admin check completed. Has admin:', hasAdmin);
+    } catch (error) {
+        console.error('❌ Error checking admin:', error);
+        hasAdmin = false;
     }
 }
 
@@ -89,6 +114,323 @@ function setupEventListeners() {
     // Search and filter
     document.getElementById('searchEmployee').addEventListener('input', filterEmployees);
     document.getElementById('filterPosition').addEventListener('change', filterEmployees);
+    
+    // Register functionality
+    setupRegisterListeners();
+}
+
+// =============================================
+// FUNGSI REGISTRASI ADMIN
+// =============================================
+function setupRegisterListeners() {
+    // Tombol show register modal
+    const showRegisterBtn = document.getElementById('showRegisterBtn');
+    if (showRegisterBtn) {
+        showRegisterBtn.addEventListener('click', showRegisterModal);
+    }
+    
+    // Tombol close register modal
+    document.getElementById('closeRegisterModal').addEventListener('click', closeRegisterModal);
+    document.getElementById('cancelRegisterBtn').addEventListener('click', closeRegisterModal);
+    
+    // Form submit
+    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+    
+    // Real-time validation
+    document.getElementById('registerPassword').addEventListener('input', validatePasswordStrength);
+    document.getElementById('registerConfirmPassword').addEventListener('input', validatePasswordMatch);
+    document.getElementById('registerNik').addEventListener('input', formatEmailFromNIK);
+}
+
+function showRegisterModal() {
+    // Jika sudah ada admin, jangan tampilkan modal
+    if (hasAdmin) {
+        showErrorModal('Akses Ditolak', 'Fitur registrasi sudah dinonaktifkan karena sudah ada admin terdaftar.');
+        return;
+    }
+    
+    document.getElementById('registerModal').classList.remove('hidden');
+    document.getElementById('registerModal').classList.add('flex');
+    
+    // Reset form
+    document.getElementById('registerForm').reset();
+    document.getElementById('registerError').classList.add('hidden');
+    document.getElementById('registerSuccess').classList.add('hidden');
+}
+
+function closeRegisterModal() {
+    document.getElementById('registerModal').classList.add('hidden');
+    document.getElementById('registerModal').classList.remove('flex');
+}
+
+function formatEmailFromNIK() {
+    const nik = document.getElementById('registerNik').value;
+    const emailField = document.getElementById('registerEmail');
+    
+    if (nik.length === 16) {
+        emailField.value = `${nik}@ppnpn-malut.go.id`;
+    }
+}
+
+function validatePasswordStrength() {
+    const password = document.getElementById('registerPassword').value;
+    const strengthBar = document.querySelector('.password-strength-bar');
+    const strengthText = document.querySelector('.password-strength-text');
+    const strengthContainer = document.querySelector('.password-strength');
+    
+    if (password.length === 0) {
+        strengthContainer.classList.add('hidden');
+        return;
+    }
+    
+    strengthContainer.classList.remove('hidden');
+    
+    let strength = 0;
+    if (password.length >= 6) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+    
+    if (strengthBar) strengthBar.style.width = `${strength}%`;
+    
+    if (strengthText) {
+        if (strength < 50) {
+            strengthBar.className = 'h-1 bg-red-500 rounded-full password-strength-bar';
+            strengthText.textContent = 'Lemah';
+            strengthText.className = 'text-xs text-red-500 password-strength-text';
+        } else if (strength < 75) {
+            strengthBar.className = 'h-1 bg-yellow-500 rounded-full password-strength-bar';
+            strengthText.textContent = 'Cukup';
+            strengthText.className = 'text-xs text-yellow-500 password-strength-text';
+        } else {
+            strengthBar.className = 'h-1 bg-green-500 rounded-full password-strength-bar';
+            strengthText.textContent = 'Kuat';
+            strengthText.className = 'text-xs text-green-500 password-strength-text';
+        }
+    }
+}
+
+function validatePasswordMatch() {
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    const errorElement = document.getElementById('passwordMatchError');
+    
+    if (confirmPassword.length > 0 && password !== confirmPassword) {
+        errorElement.classList.remove('hidden');
+        return false;
+    } else {
+        errorElement.classList.add('hidden');
+        return true;
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    
+    const registerBtn = document.getElementById('registerBtn');
+    const registerBtnText = document.getElementById('registerBtnText');
+    const registerSpinner = document.getElementById('registerSpinner');
+    const errorDiv = document.getElementById('registerError');
+    const successDiv = document.getElementById('registerSuccess');
+    
+    // Get form data
+    const nik = document.getElementById('registerNik').value.trim();
+    const name = document.getElementById('registerName').value.trim();
+    const position = document.getElementById('registerPosition').value;
+    const unitKerja = document.getElementById('registerUnit').value.trim();
+    const phone = document.getElementById('registerPhone').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    
+    // Validation
+    if (!nik || !name || !position || !email || !password || !confirmPassword) {
+        showRegisterError('Semua field bertanda * harus diisi!');
+        return;
+    }
+    
+    if (!/^\d{16}$/.test(nik)) {
+        showRegisterError('NIK harus terdiri dari 16 digit angka!');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showRegisterError('Password harus minimal 6 karakter!');
+        return;
+    }
+    
+    if (!validatePasswordMatch()) {
+        showRegisterError('Password dan konfirmasi password tidak cocok!');
+        return;
+    }
+    
+    // Show loading state
+    registerBtn.disabled = true;
+    registerBtnText.textContent = 'Mendaftarkan...';
+    registerSpinner.classList.remove('hidden');
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    
+    try {
+        console.log('🚀 Memulai proses registrasi admin...');
+        
+        // Step 1: Sign up user dengan Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    nik: nik,
+                    name: name,
+                    role: 'admin'
+                }
+            }
+        });
+        
+        if (authError) {
+            console.error('❌ Auth error:', authError);
+            
+            // Handle specific errors
+            if (authError.message.includes('User already registered')) {
+                throw new Error('Email/NIK sudah terdaftar!');
+            } else if (authError.message.includes('Password')) {
+                throw new Error('Password terlalu lemah! Gunakan kombinasi huruf dan angka.');
+            } else {
+                throw new Error(`Error auth: ${authError.message}`);
+            }
+        }
+        
+        if (!authData.user) {
+            throw new Error('Gagal membuat user. Silakan coba lagi.');
+        }
+        
+        console.log('✅ User auth created:', authData.user.id);
+        
+        // Step 2: Get organization ID (create if not exists)
+        let organizationId;
+        const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .select('id')
+            .limit(1);
+        
+        if (orgError || !orgData || orgData.length === 0) {
+            // Create organization if not exists
+            const { data: newOrg, error: newOrgError } = await supabase
+                .from('organizations')
+                .insert([{
+                    name: 'Kantor Guru dan Tenaga Kependidikan Provinsi Maluku Utara',
+                    address: 'Jl. Raya Sofifi, Maluku Utara',
+                    phone: '(0921) 123456',
+                    email: 'gtk.malut@kemdikbud.go.id'
+                }])
+                .select();
+            
+            if (newOrgError) throw new Error(`Gagal membuat organization: ${newOrgError.message}`);
+            organizationId = newOrg[0].id;
+        } else {
+            organizationId = orgData[0].id;
+        }
+        
+        // Step 3: Create employee record
+        const { error: employeeError } = await supabase
+            .from('employees')
+            .insert([{
+                organization_id: organizationId,
+                user_id: authData.user.id,
+                nik: nik,
+                name: name,
+                position: position,
+                unit_kerja: unitKerja || 'Kantor GTK Provinsi Maluku Utara',
+                phone: phone || null,
+                email: email,
+                is_active: true
+            }]);
+        
+        if (employeeError) {
+            console.error('❌ Employee creation error:', employeeError);
+            
+            // Rollback: Delete auth user if employee creation fails
+            await supabase.auth.admin.deleteUser(authData.user.id);
+            
+            if (employeeError.message.includes('duplicate key')) {
+                throw new Error('NIK atau email sudah terdaftar di sistem!');
+            } else {
+                throw new Error(`Gagal membuat data pegawai: ${employeeError.message}`);
+            }
+        }
+        
+        console.log('✅ Employee record created');
+        
+        // Step 4: Create default office if not exists
+        const { data: officeData, error: officeError } = await supabase
+            .from('offices')
+            .select('id')
+            .limit(1);
+        
+        if (officeError || !officeData || officeData.length === 0) {
+            await supabase
+                .from('offices')
+                .insert([{
+                    organization_id: organizationId,
+                    name: 'Kantor GTK Provinsi Maluku Utara - Sofifi',
+                    address: 'Jl. Raya Sofifi, Kota Sofifi, Maluku Utara',
+                    latitude: 1.2379,
+                    longitude: 127.5669,
+                    radius_meters: 500,
+                    is_active: true
+                }]);
+        }
+        
+        // Update flag bahwa sudah ada admin
+        hasAdmin = true;
+        
+        // Sembunyikan tombol register
+        document.getElementById('showRegisterBtn').style.display = 'none';
+        
+        // Success
+        showRegisterSuccess(
+            '✅ Pendaftaran Berhasil!', 
+            `Akun admin <strong>${name}</strong> berhasil dibuat. Anda sekarang bisa login dengan NIK <strong>${nik}</strong> dan password yang telah dibuat.`
+        );
+        
+        // Auto-close modal after 5 seconds
+        setTimeout(() => {
+            closeRegisterModal();
+        }, 5000);
+        
+    } catch (error) {
+        console.error('❌ Registration error:', error);
+        showRegisterError(error.message || 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.');
+    } finally {
+        registerBtn.disabled = false;
+        registerBtnText.textContent = 'Daftar Admin';
+        registerSpinner.classList.add('hidden');
+    }
+}
+
+function showRegisterError(message) {
+    const errorDiv = document.getElementById('registerError');
+    const errorMessage = document.getElementById('registerErrorMessage');
+    const successDiv = document.getElementById('registerSuccess');
+    
+    if (errorMessage) errorMessage.innerHTML = message;
+    if (errorDiv) errorDiv.classList.remove('hidden');
+    if (successDiv) successDiv.classList.add('hidden');
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        if (errorDiv) errorDiv.classList.add('hidden');
+    }, 10000);
+}
+
+function showRegisterSuccess(title, message) {
+    const successDiv = document.getElementById('registerSuccess');
+    const successMessage = document.getElementById('registerSuccessMessage');
+    const errorDiv = document.getElementById('registerError');
+    
+    if (successMessage) successMessage.innerHTML = `<strong>${title}</strong><br>${message}`;
+    if (successDiv) successDiv.classList.remove('hidden');
+    if (errorDiv) errorDiv.classList.add('hidden');
 }
 
 // =============================================
@@ -110,7 +452,7 @@ async function handleLogin(e) {
         return;
     }
     
-    // Tampilkan loading state
+    // Show loading state
     loginBtn.disabled = true;
     loginBtnText.textContent = 'Masuk...';
     loginSpinner.classList.remove('hidden');
@@ -1139,6 +1481,8 @@ function showMainApp() {
 }
 
 function showError(element, message) {
+    if (!element) return;
+    
     const messageEl = element.querySelector('p');
     if (messageEl) messageEl.textContent = message;
     element.classList.remove('hidden');
