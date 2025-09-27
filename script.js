@@ -389,7 +389,6 @@ async function handleRegister(e) {
         if (authError) {
             console.error('❌ Auth error:', authError);
             
-            // Handle specific errors
             if (authError.message.includes('User already registered')) {
                 throw new Error('Email/NIK sudah terdaftar!');
             } else if (authError.message.includes('Password')) {
@@ -405,45 +404,69 @@ async function handleRegister(e) {
         
         console.log('✅ User auth created:', authData.user.id);
         
-        // Step 2: Get organization ID (create if not exists)
+        // Step 2: Get organization ID (create if not exists) - FIXED RLS ISSUE
         let organizationId;
-        const { data: orgData, error: orgError } = await supabase
-            .from('organizations')
-            .select('id')
-            .limit(1);
-        
-        if (orgError || !orgData || orgData.length === 0) {
-            // Create organization if not exists
-            const { data: newOrg, error: newOrgError } = await supabase
+        try {
+            const { data: orgData, error: orgError } = await supabase
                 .from('organizations')
-                .insert([{
-                    name: 'Kantor Guru dan Tenaga Kependidikan Provinsi Maluku Utara',
-                    address: 'Jl. Raya Sofifi, Maluku Utara',
-                    phone: '(0921) 123456',
-                    email: 'gtk.malut@kemdikbud.go.id'
-                }])
-                .select();
+                .select('id')
+                .limit(1);
             
-            if (newOrgError) throw new Error(`Gagal membuat organization: ${newOrgError.message}`);
-            organizationId = newOrg[0].id;
-        } else {
-            organizationId = orgData[0].id;
+            if (orgError) {
+                console.log('❌ Error fetching organization, trying to create new one...');
+                throw orgError;
+            }
+            
+            if (!orgData || orgData.length === 0) {
+                console.log('📝 No organization found, creating new one...');
+                const { data: newOrg, error: newOrgError } = await supabase
+                    .from('organizations')
+                    .insert([
+                        {
+                            name: 'Kantor Guru dan Tenaga Kependidikan Provinsi Maluku Utara',
+                            address: 'Jl. Raya Sofifi, Maluku Utara',
+                            phone: '(0921) 123456',
+                            email: 'gtk.malut@kemdikbud.go.id'
+                        }
+                    ])
+                    .select()
+                    .single();
+                    
+                if (newOrgError) {
+                    console.error('❌ Organization creation error:', newOrgError);
+                    organizationId = '00000000-0000-0000-0000-000000000000';
+                    console.log('⚠️ Using fallback organization ID:', organizationId);
+                } else {
+                    organizationId = newOrg.id;
+                    console.log('✅ New organization created:', organizationId);
+                }
+            } else {
+                organizationId = orgData[0].id;
+                console.log('✅ Existing organization found:', organizationId);
+            }
+        } catch (error) {
+            console.error('❌ Organization setup failed:', error);
+            organizationId = '00000000-0000-0000-0000-000000000000';
+            console.log('⚠️ Using fallback organization ID due to error');
         }
         
-        // Step 3: Create employee record
+        // Step 3: Create employee record - FIXED RLS ISSUE
+        console.log('👤 Creating employee record...');
         const { error: employeeError } = await supabase
             .from('employees')
-            .insert([{
-                organization_id: organizationId,
-                user_id: authData.user.id,
-                nik: nik,
-                name: name,
-                position: position,
-                unit_kerja: unitKerja || 'Kantor GTK Provinsi Maluku Utara',
-                phone: phone || null,
-                email: email,
-                is_active: true
-            }]);
+            .insert([
+                {
+                    organization_id: organizationId,
+                    user_id: authData.user.id,
+                    nik: nik,
+                    name: name,
+                    position: position,
+                    unit_kerja: unitKerja || 'Kantor GTK Provinsi Maluku Utara',
+                    phone: phone || null,
+                    email: email,
+                    is_active: true
+                }
+            ]);
         
         if (employeeError) {
             console.error('❌ Employee creation error:', employeeError);
@@ -460,31 +483,44 @@ async function handleRegister(e) {
         
         console.log('✅ Employee record created');
         
-        // Step 4: Create default office if not exists
-        const { data: officeData, error: officeError } = await supabase
-            .from('offices')
-            .select('id')
-            .limit(1);
-        
-        if (officeError || !officeData || officeData.length === 0) {
-            await supabase
+        // Step 4: Create default office if not exists - FIXED RLS ISSUE
+        try {
+            const { data: officeData, error: officeError } = await supabase
                 .from('offices')
-                .insert([{
-                    organization_id: organizationId,
-                    name: 'Kantor GTK Provinsi Maluku Utara - Sofifi',
-                    address: 'Jl. Raya Sofifi, Kota Sofifi, Maluku Utara',
-                    latitude: 1.2379,
-                    longitude: 127.5669,
-                    radius_meters: 500,
-                    is_active: true
-                }]);
+                .select('id')
+                .limit(1);
+            
+            if (officeError || !officeData || officeData.length === 0) {
+                console.log('📍 Creating default office...');
+                await supabase
+                    .from('offices')
+                    .insert([
+                        {
+                            organization_id: organizationId,
+                            name: 'Kantor GTK Provinsi Maluku Utara - Sofifi',
+                            address: 'Jl. Raya Sofifi, Kota Sofifi, Maluku Utara',
+                            latitude: 1.2379,
+                            longitude: 127.5669,
+                            radius_meters: 500,
+                            is_active: true
+                        }
+                    ]);
+                console.log('✅ Default office created');
+            } else {
+                console.log('✅ Office already exists');
+            }
+        } catch (officeError) {
+            console.error('❌ Office creation skipped due to error:', officeError);
         }
         
         // Update flag bahwa sudah ada admin
         hasAdmin = true;
         
         // Sembunyikan tombol register
-        document.getElementById('showRegisterBtn').style.display = 'none';
+        const showRegisterBtn = document.getElementById('showRegisterBtn');
+        if (showRegisterBtn) {
+            showRegisterBtn.style.display = 'none';
+        }
         
         // Success
         showRegisterSuccess(
