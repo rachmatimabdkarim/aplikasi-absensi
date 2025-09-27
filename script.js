@@ -223,9 +223,16 @@ function showRegisterModal() {
     
     const registerModal = document.getElementById('registerModal');
     if (registerModal) {
+        console.log('✅ Register modal element found');
+        
+        // HAPUS SEMUA KELAS YANG MENG-HIDDEN-KAN MODAL
         registerModal.classList.remove('hidden');
-        registerModal.classList.add('flex');
-        console.log('✅ Register modal shown');
+        registerModal.style.display = 'flex';
+        registerModal.style.opacity = '1';
+        registerModal.style.visibility = 'visible';
+        
+        console.log('✅ Register modal classes after show:', registerModal.classList);
+        console.log('✅ Register modal style.display:', registerModal.style.display);
     } else {
         console.log('❌ Register modal element not found');
         return;
@@ -253,12 +260,11 @@ function showRegisterModal() {
         strengthContainer.classList.add('hidden');
     }
 }
-
 function closeRegisterModal() {
     const registerModal = document.getElementById('registerModal');
     if (registerModal) {
         registerModal.classList.add('hidden');
-        registerModal.classList.remove('flex');
+        registerModal.style.display = 'none';
         console.log('✅ Register modal closed');
     }
 }
